@@ -36,23 +36,34 @@ async def _lastfm(ctx):
 ])
 async def _latest(ctx, user):
     text = ""
-    indexes = [1, 2, 3, 4]
+    nowplaying = ""
+    indexes = [1, 2, 3, 4, 5]
     req = requests.get(
-        f'{lastFMBaseURL}?method=user.getrecenttracks&user={user}&api_key={lastFMAPIKey}&limit=5&format=json')  # noqa
+        f'{lastFMBaseURL}?method=user.getrecenttracks&user={user}&api_key={lastFMAPIKey}&limit=10&format=json')  # noqa
     r = req.json()
     recent = r["recenttracks"]
     tracks = recent["track"]
-    print(tracks[0])
 
     try:
         if tracks[0]["@attr"]:
-            text += f"**Now Playing:** {tracks[0]['name']} | {tracks[0]['artist']['#text']}\n"  # noqa
+            nowplaying += f"{tracks[0]['name']} | {tracks[0]['artist']['#text']}\n"  # noqa
     except KeyError:
         text += f"{tracks[0]['name']} | {tracks[0]['artist']['#text']}\n"
 
     for i in indexes:
         text += f"{tracks[i]['name']} | {tracks[i]['artist']['#text']}\n"
+
+    embed = discord.Embed(
+        title=f"**{user}**'s latest tracks", type="rich", color=0xE4141E, url=f"https://lastfm.com/user/{user}")  # noqa
+    if not nowplaying:
+        pass
+    else:
+        embed.add_field(name="**Now Playing**", value=nowplaying, inline=False)
+    embed.add_field(name="**History**", value=text, inline=False)
+    embed.set_author(
+        name="LastFM", icon_url="https://www.last.fm/static/images/lastfm_avatar_twitter.52a5d69a85ac.png")  # noqa
+
     await ctx.respond()
-    await ctx.send(text)
+    await ctx.send(content=None, embed=embed)
 
 client.run(os.getenv("TOKEN"))
