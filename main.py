@@ -66,4 +66,28 @@ async def _latest(ctx, user):
     await ctx.respond()
     await ctx.send(content=None, embed=embed)
 
+
+@slash.subcommand(base="lastfm", name="weekly", guild_ids=guild_ids, options=[
+    manage_commands.create_option(
+        "user", "User whose weekly graph to fetch.", 3, True)
+])
+async def _weekly(ctx, user):
+    text = ""
+    indexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    req = requests.get(
+        f'{lastFMBaseURL}?method=user.getweeklytrackchart&user={user}&api_key={lastFMAPIKey}&format=json'  # noqa
+    )
+    r = req.json()
+    tracklist = r['weeklytrackchart']['track']
+
+    for i in indexes:
+        text += f"{tracklist[i]['name']} | {tracklist[i]['artist']['#text']}\n"
+
+    embed = discord.Embed(title=f"**{user}**'s Weekly Top 10 Tracks", description=text, type="rich", color=0xE4141E, url=f"https://lastfm.com/user/{user}")  # noqa
+    embed.set_author(
+        name="LastFM", icon_url="https://www.last.fm/static/images/lastfm_avatar_twitter.52a5d69a85ac.png")  # noqa
+
+    await ctx.respond()
+    await ctx.send(content=None, embed=embed)
+
 client.run(os.getenv("TOKEN"))
